@@ -6,6 +6,8 @@ const path = require('path');
 const app = express();
 const port = 5000;
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(cors({
     origin: 'http://localhost:3000', // Allow requests only from the React frontend
     methods: ['GET', 'POST'], // Allow GET and POST requests
@@ -19,7 +21,7 @@ if (!fs.existsSync('./uploads')) {
 app.use(express.json({ limit: '50mb' })); // To handle large base64 strings
 
 // Endpoint to receive the modified image
-app.post('/upload-modified', (req, res) => {
+app.post('/upload', (req, res) => {
     const { image } = req.body;
 
     if (!image) {
@@ -29,16 +31,20 @@ app.post('/upload-modified', (req, res) => {
     // Remove the "data:image/png;base64," part of the string
     const base64Data = image.replace(/^data:image\/png;base64,/, '');
 
+    // Generate the filename (you can customize this logic)
+    const fileName = Date.now() + '.png'; // Using the timestamp as the filename
+
     // Write the image to a file (you can change the file path and name as needed)
-    const filePath = path.join(__dirname, 'uploads', Date.now() + '.png');
+    const filePath = path.join('uploads', fileName);
 
     fs.writeFile(filePath, base64Data, 'base64', (err) => {
         if (err) {
             return res.status(500).json({ error: 'Error saving the image' });
         }
-        res.json({ message: 'Image uploaded successfully', filePath });
+        res.json({ fileName });
     });
 });
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
