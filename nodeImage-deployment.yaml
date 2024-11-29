@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejsImage
+  template:
+    metadata:
+      labels:
+        app: nodejsImage
+    spec:
+      containers:
+        - name: nodejs-container
+          image: your-nodejs-image:latest # Replace with your image TODO
+          ports:
+            - containerPort: 5000
+
+      
