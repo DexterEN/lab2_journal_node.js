@@ -36,7 +36,7 @@ app.post('/upload', (req, res) => {
 
     // Write the image to a file (you can change the file path and name as needed)
     const filePath = path.join('uploads', fileName);
-
+    console.log(filePath)
     fs.writeFile(filePath, base64Data, 'base64', (err) => {
         if (err) {
             return res.status(500).json({ error: 'Error saving the image' });
