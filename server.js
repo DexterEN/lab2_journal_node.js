@@ -33,10 +33,16 @@ if (!fs.existsSync('./uploads')) {
     fs.mkdirSync('./uploads');
 }
 
-// Public route (no authentication required)
-app.get('/healthz', (req, res) => {
-    res.status(200);
+// Default root route
+app.get('/', (req, res) => {
+    res.send('Server is running. Welcome!');
 });
+
+// Health check route (public)
+app.get('/healthz', (req, res) => {
+    res.status(200).json({ status: 'OK' });
+});
+
 // Public route (no authentication required)
 app.get('/private', validateJWT, (req, res) => {
     res.send('This is a private route, login required.');
