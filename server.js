@@ -15,8 +15,18 @@ app.use(cors({
 
 app.use(express.json({ limit: '50mb' })); // To handle large base64 strings
 
-// Serve static uploads folder
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Protected route to serve uploads securely
+app.get('/uploads/:filename', validateJWT, (req, res) => {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, 'uploads', filename);
+
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).json({ error: 'File not found' });
+    }
+});
 
 // Create the uploads folder if it doesn't exist
 if (!fs.existsSync('./uploads')) {
@@ -24,8 +34,8 @@ if (!fs.existsSync('./uploads')) {
 }
 
 // Public route (no authentication required)
-app.get('/public', (req, res) => {
-    res.send('This is a public route, no login required.');
+app.get('/healthz', (req, res) => {
+    res.status(200);
 });
 // Public route (no authentication required)
 app.get('/private', validateJWT, (req, res) => {
