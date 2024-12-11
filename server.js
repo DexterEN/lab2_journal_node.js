@@ -2,41 +2,49 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const validateJWT = require('./auth'); // Import the JWT validation middleware
 
 const app = express();
 const port = 5000;
 
+// Enable CORS for your frontend
+app.use(cors({
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow Authorization header for the token
+}));
+
+app.use(express.json({ limit: '50mb' })); // To handle large base64 strings
+
+// Serve static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use(cors({
-    origin: 'http://localhost:3000', // Allow requests only from the React frontend
-    methods: ['GET', 'POST'], // Allow GET and POST requests
-    allowedHeaders: ['Content-Type'], // Allow Content-Type header
-}));
 // Create the uploads folder if it doesn't exist
 if (!fs.existsSync('./uploads')) {
     fs.mkdirSync('./uploads');
 }
 
-app.use(express.json({ limit: '50mb' })); // To handle large base64 strings
+// Public route (no authentication required)
+app.get('/public', (req, res) => {
+    res.send('This is a public route, no login required.');
+});
+// Public route (no authentication required)
+app.get('/private', validateJWT, (req, res) => {
+    res.send('This is a private route, login required.');
+});
 
-// Endpoint to receive the modified image
-app.post('/upload', (req, res) => {
+// Protected route - Requires authentication via JWT token
+app.post('/upload', validateJWT, (req, res) => {
     const { image } = req.body;
 
     if (!image) {
         return res.status(400).json({ error: 'No image data received' });
     }
 
-    // Remove the "data:image/png;base64," part of the string
+    // Process the image as usual
     const base64Data = image.replace(/^data:image\/png;base64,/, '');
-
-    // Generate the filename (you can customize this logic)
-    const fileName = Date.now() + '.png'; // Using the timestamp as the filename
-
-    // Write the image to a file (you can change the file path and name as needed)
+    const fileName = Date.now() + '.png'; // Generate filename
     const filePath = path.join('uploads', fileName);
-    console.log(filePath)
+
     fs.writeFile(filePath, base64Data, 'base64', (err) => {
         if (err) {
             return res.status(500).json({ error: 'Error saving the image' });
@@ -45,7 +53,6 @@ app.post('/upload', (req, res) => {
     });
 });
 
-
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on kthcloud:${port}`);
 });
