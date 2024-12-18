@@ -43,7 +43,7 @@ app.get('/healthz', (req, res) => {
     res.status(200).json({ status: 'OK' });
 });
 
-// Public route (no authentication required)
+
 app.get('/private', validateJWT, (req, res) => {
     res.send('This is a private route, login required.');
 });
@@ -69,6 +69,16 @@ app.post('/upload', validateJWT, (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on kthcloud:${port}`);
-});
+/**
+ * app.listen(port, () => {
+        console.log(`Server is running on kthcloud:${port}`);
+    });**/
+
+module.exports = app; // Export the app for testing
+
+if (require.main === module) {
+    // Start the server only if the file is executed directly
+    app.listen(port, () => {
+        console.log(`Server is running on kthcloud:${port}`);
+    });
+}
